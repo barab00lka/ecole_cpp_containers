@@ -106,14 +106,11 @@ class List final {
       ptr_ = ptr_->prev_;
       return tmp;
     }
-    [[nodiscard]] friend bool operator==(const ListIterator& a,
-                                         const ListIterator& b) noexcept {
-      return a.ptr_ == b.ptr_;
+    [[nodiscard]] bool operator==(const ListConstIterator& a) const noexcept {
+      return a.node() == this->ptr_;
     }
-
-    [[nodiscard]] friend bool operator!=(const ListIterator& a,
-                                         const ListIterator& b) noexcept {
-      return !(a == b);
+    [[nodiscard]] bool operator==(const ListIterator& a) const noexcept {
+      return a.node() == this->ptr_;
     }
   };
 
@@ -160,13 +157,11 @@ class List final {
       ptr_ = ptr_->prev_;
       return tmp;
     }
-    [[nodiscard]] friend bool operator==(const ListConstIterator& a,
-                                         const ListConstIterator& b) noexcept {
-      return a.ptr_ == b.ptr_;
+    [[nodiscard]] bool operator==(const ListConstIterator& b) const noexcept {
+      return this->ptr_ == b.node();
     }
-    [[nodiscard]] friend bool operator!=(const ListConstIterator& a,
-                                         const ListConstIterator& b) {
-      return !(a == b);
+    [[nodiscard]] bool operator==(const ListIterator& b) const noexcept {
+      return this->ptr_ == ListConstIterator(b).node();
     }
   };
 

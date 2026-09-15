@@ -152,11 +152,11 @@ class Vector final {
   const_reference operator[](size_type i) const noexcept {
     return *(start_.get() + i);
   }
-  friend constexpr bool operator==(const Vector& lhs, const Vector& rhs) {
-    auto lsize = lhs.size(), rsize = rhs.size();
+  bool operator==(const Vector& lhs) const noexcept {
+    auto lsize = lhs.size(), rsize = size();
     if (lsize != rsize) return false;
     for (size_type i = 0; i < lsize; ++i)
-      if (lhs[i] != rhs[i]) return false;
+      if (lhs[i] != (*this)[i]) return false;
     return true;
   }
   [[nodiscard]] reference front() noexcept { return *start_.get(); }

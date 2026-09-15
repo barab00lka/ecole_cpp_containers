@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <chrono>
 
 #include "../include/my_vector.h"
 
