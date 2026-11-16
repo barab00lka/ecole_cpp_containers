@@ -7,8 +7,8 @@
 
 #include "../include/my_vector.h"
 
-template <typename T>
-void PrintVector(const char* name, const auto& vec) {
+template <typename T, typename V>
+void PrintVector(const char* name, const V& vec) {
   std::cout << name << ": [";
   for (size_t i = 0; i < vec.size(); ++i) {
     std::cout << vec[i];
@@ -22,8 +22,8 @@ void ExpectVectorsEqual(const my::Vector<T>& actual,
   ASSERT_EQ(actual.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
     if (actual[i] != expected[i]) {
-      PrintVector<T>("actual", actual);
-      PrintVector<T>("expected", expected);
+      PrintVector<T, my::Vector<T>>("actual", actual);
+      PrintVector<T, std::vector<T>>("expected", expected);
     }
     EXPECT_EQ(actual[i], expected[i]) << "Mismatch at index " << i;
   }

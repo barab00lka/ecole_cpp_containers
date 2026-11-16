@@ -75,42 +75,43 @@ class List final {
     ListIterator() noexcept = default;
     explicit ListIterator(List_node_* ptr) noexcept : ptr_(ptr) {}
 
-    // костыль для const_iterator (см. ниже)
-    List_node_* node() const { return ptr_; }
-    // Allow type conversion to const_iterator from non-const
-    explicit operator ListConstIterator() const {
-      return ListConstIterator(ptr_);
-    }
+    List_node_* node() const noexcept { return ptr_; }
 
     [[nodiscard]] reference operator*() const noexcept { return ptr_->v_; }
     [[nodiscard]] pointer operator->() const noexcept {
       return std::addressof(operator*());
     }
 
-    ListIterator& operator++() noexcept {  // prefix (++iter) overload
+    ListIterator& operator++() noexcept {
       ptr_ = ptr_->next_;
       return *this;
     }
-
-    ListIterator operator++(int) noexcept {  // postfix (iter++)
-      auto tmp = *this;
+    ListIterator operator++(int) noexcept {
+      auto t = *this;
       ptr_ = ptr_->next_;
-      return tmp;
+      return t;
     }
     ListIterator& operator--() noexcept {
       ptr_ = ptr_->prev_;
       return *this;
     }
     ListIterator operator--(int) noexcept {
-      auto tmp = *this;
+      auto t = *this;
       ptr_ = ptr_->prev_;
-      return tmp;
+      return t;
+    }
+
+    [[nodiscard]] bool operator==(const ListIterator& a) const noexcept {
+      return ptr_ == a.ptr_;
     }
     [[nodiscard]] bool operator==(const ListConstIterator& a) const noexcept {
-      return a.node() == this->ptr_;
+      return ptr_ == a.node();
     }
-    [[nodiscard]] bool operator==(const ListIterator& a) const noexcept {
-      return a.node() == this->ptr_;
+    [[nodiscard]] bool operator!=(const ListIterator& a) const noexcept {
+      return !(*this == a);
+    }
+    [[nodiscard]] bool operator!=(const ListConstIterator& a) const noexcept {
+      return !(*this == a);
     }
   };
 
@@ -122,46 +123,55 @@ class List final {
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = std::ptrdiff_t;
     using value_type = T;
-    using reference = T&;
+    using reference = const T&;  // was T&
     using const_reference = const T&;
-    using pointer = T*;
+    using pointer = const T*;  // was T*
     using const_pointer = const T*;
     using size_type = size_t;
 
-    explicit ListConstIterator(const List_node_* ptr) : ptr_(ptr) {}
-    ListConstIterator(const ListIterator& it) : ptr_(it.node()) {}
-    const List_node_* node() const noexcept { return ptr_; };
-    [[nodiscard]] const_reference operator*() const& noexcept {
+    ListConstIterator() noexcept = default;  // useful as sentinel
+    explicit ListConstIterator(const List_node_* ptr) noexcept : ptr_(ptr) {}
+    ListConstIterator(const ListIterator& it) noexcept : ptr_(it.node()) {}
+
+    const List_node_* node() const noexcept { return ptr_; }
+
+    [[nodiscard]] const_reference operator*() const noexcept {
       return ptr_->v_;
-    }
+    }  // was const&
     [[nodiscard]] const_pointer operator->() const noexcept {
       return std::addressof(operator*());
     }
 
-    ListConstIterator& operator++() noexcept {  // prefix (++iter) overload
+    ListConstIterator& operator++() noexcept {
       ptr_ = ptr_->next_;
       return *this;
     }
-
-    ListConstIterator operator++(int) noexcept {  // postfix (iter++)
-      auto tmp = *this;
+    ListConstIterator operator++(int) noexcept {
+      auto t = *this;
       ptr_ = ptr_->next_;
-      return tmp;
+      return t;
     }
     ListConstIterator& operator--() noexcept {
       ptr_ = ptr_->prev_;
       return *this;
     }
     ListConstIterator operator--(int) noexcept {
-      auto tmp = *this;
+      auto t = *this;
       ptr_ = ptr_->prev_;
-      return tmp;
+      return t;
     }
+
     [[nodiscard]] bool operator==(const ListConstIterator& b) const noexcept {
-      return this->ptr_ == b.node();
+      return ptr_ == b.ptr_;
     }
     [[nodiscard]] bool operator==(const ListIterator& b) const noexcept {
-      return this->ptr_ == ListConstIterator(b).node();
+      return ptr_ == b.node();
+    }
+    [[nodiscard]] bool operator!=(const ListConstIterator& b) const noexcept {
+      return !(*this == b);
+    }
+    [[nodiscard]] bool operator!=(const ListIterator& b) const noexcept {
+      return !(*this == b);
     }
   };
 

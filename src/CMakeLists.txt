@@ -1,9 +1,7 @@
-# Sme common variables
+# Some common variables
 cmake_minimum_required(VERSION 3.14)
 # set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,google-*")
 # set(CMAKE_COLOR_DIAGNOSTICS ON)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Name of the project
 project(CPP2_my_containers VERSION 1.0.0)
@@ -47,6 +45,8 @@ add_library(${LIB_TARGET} STATIC
 target_include_directories(${LIB_TARGET} PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_compile_features(${LIB_TARGET} PRIVATE cxx_std_17)
+set_target_properties(${LIB_TARGET} PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_options(${LIB_TARGET} PUBLIC 
 	-Wall
 	-Wextra

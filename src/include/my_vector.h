@@ -199,7 +199,7 @@ class Vector {
     if constexpr (std::is_trivially_copyable_v<T>) {
       *fin_ = value;
     } else {
-      std::construct_at(fin_, value);
+      ::new (static_cast<void*>(fin_)) value_type(value);  // placement new
     }
     fin_ += 1;
   }
@@ -211,7 +211,7 @@ class Vector {
     if constexpr (std::is_trivially_copyable_v<T>) {
       *fin_ = std::move(value);
     } else {
-      std::construct_at(fin_, std::move(value));
+      ::new (static_cast<void*>(fin_)) value_type(std::move(value));
     }
     fin_ += 1;
   }
@@ -271,7 +271,7 @@ class Vector {
     if (insert_pos == end()) {
       push_back(tmp);
     } else {
-      std::construct_at(end(), std::move(*(end() - 1)));
+      ::new (static_cast<void*>(end())) value_type(std::move(*(end() - 1)));
       for (iterator it = end() - 1; it > insert_pos; --it) {
         *it = std::move(*(it - 1));
       }
@@ -308,7 +308,7 @@ class Vector {
         iterator src = insert_pos + i - 1;
         iterator dest = insert_pos + n_items + i - 1;
         if (dest >= old_end) {
-          std::construct_at(dest, std::move(*src));
+          ::new (static_cast<void*>(dest)) value_type(std::move(*src));
         } else {
           *dest = std::move(*src);
         }
@@ -319,7 +319,8 @@ class Vector {
       for (size_t i = 0; i < n_items; ++i) {
         iterator target = insert_pos + i;
         if (target >= old_end) {
-          std::construct_at(target, std::move(new_values[i]));
+          ::new (static_cast<void*>(target))
+              value_type(std::move(new_values[i]));
         } else {
           *target = std::move(new_values[i]);
         }
