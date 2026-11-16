@@ -11,7 +11,7 @@
 namespace my {
 
 template <typename T>
-class Vector final {
+class Vector {
   // public member variables
  public:
   // member types
@@ -51,10 +51,11 @@ class Vector final {
 
     std::unique_ptr<T[], aligned_deleter_> tmp(allocate_aligned_(new_cap));
 
-    if constexpr (std::is_trivially_copyable_v<T>)
-      std::memmove(tmp.get(), cbegin(), old_size * sizeof(T));
-    else
-      std::uninitialized_move_n(cbegin(), old_size, tmp.get());
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      std::memmove(tmp.get(), begin(), old_size * sizeof(T));
+    } else {
+      std::uninitialized_move_n(begin(), old_size, tmp.get());
+    }
     start_.swap(tmp);
     fin_ = start_.get() + old_size;
     end_of_memory_ = start_.get() + new_cap;
@@ -97,7 +98,7 @@ class Vector final {
     }
 
     start_.reset(allocate_aligned_(v.capacity()));
-    fin_ = std::uninitialized_copy_n(v.cbegin(), v.size(), begin());
+    fin_ = std::uninitialized_copy_n(v.begin(), v.size(), begin());
     end_of_memory_ = start_.get() + cap;
   }
   // v.start обнуляется автоматически, так
@@ -155,8 +156,9 @@ class Vector final {
   bool operator==(const Vector& lhs) const noexcept {
     auto lsize = lhs.size(), rsize = size();
     if (lsize != rsize) return false;
-    for (size_type i = 0; i < lsize; ++i)
+    for (size_type i = 0; i < lsize; ++i) {
       if (lhs[i] != (*this)[i]) return false;
+    }
     return true;
   }
   [[nodiscard]] reference front() noexcept { return *start_.get(); }
@@ -164,23 +166,24 @@ class Vector final {
   [[nodiscard]] const_reference front() const noexcept { return *start_.get(); }
   [[nodiscard]] reference back() const noexcept { return *(fin_ - 1); }
   [[nodiscard]] pointer data() noexcept { return start_.get(); }
+  [[nodiscard]] pointer data() const noexcept { return start_.get(); }
 
   // iterators
   [[nodiscard]] iterator begin() noexcept { return start_.get(); }
-  [[nodiscard]] const_iterator cbegin() const noexcept { return start_.get(); }
+  [[nodiscard]] const_iterator begin() const noexcept { return start_.get(); }
   [[nodiscard]] iterator end() noexcept { return fin_; }
-  [[nodiscard]] const_iterator cend() const noexcept { return fin_; }
+  [[nodiscard]] const_iterator end() const noexcept { return fin_; }
   [[nodiscard]] reverse_iterator rbegin() noexcept {
     return reverse_iterator(end());
+  }
+  [[nodiscard]] const_reverse_iterator rbegin() const noexcept {
+    return const_reverse_iterator(end());
   }
   [[nodiscard]] reverse_iterator rend() noexcept {
     return reverse_iterator(begin());
   }
-  [[nodiscard]] const_reverse_iterator crbegin() const noexcept {
-    return const_reverse_iterator(cend());
-  }
-  [[nodiscard]] const_reverse_iterator crend() const noexcept {
-    return const_reverse_iterator(cbegin());
+  [[nodiscard]] const_reverse_iterator rend() const noexcept {
+    return const_reverse_iterator(begin());
   }
 
   // Modifiers
@@ -193,10 +196,11 @@ class Vector final {
     if (size() == capacity()) {
       increase_cap_by_n(size() ? size() : 10);
     }
-    if constexpr (std::is_trivially_copyable_v<T>)
+    if constexpr (std::is_trivially_copyable_v<T>) {
       *fin_ = value;
-    else
+    } else {
       std::construct_at(fin_, value);
+    }
     fin_ += 1;
   }
 
@@ -204,10 +208,11 @@ class Vector final {
     if (size() == capacity()) {
       increase_cap_by_n(size() ? size() : 10);
     }
-    if constexpr (std::is_trivially_copyable_v<T>)
+    if constexpr (std::is_trivially_copyable_v<T>) {
       *fin_ = std::move(value);
-    else
+    } else {
       std::construct_at(fin_, std::move(value));
+    }
     fin_ += 1;
   }
 
@@ -238,10 +243,11 @@ class Vector final {
     auto t_size = size();
     std::unique_ptr<T[], aligned_deleter_> tmp(allocate_aligned_(t_size));
 
-    if constexpr (std::is_trivially_copyable_v<T>)
-      std::memmove(tmp.get(), cbegin(), t_size * sizeof(T));
-    else
-      std::uninitialized_move_n(cbegin(), t_size, tmp.get());
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      std::memmove(tmp.get(), begin(), t_size * sizeof(T));
+    } else {
+      std::uninitialized_move_n(begin(), t_size, tmp.get());
+    }
     start_.swap(tmp);
 
     fin_ = start_.get() + t_size;
@@ -249,9 +255,12 @@ class Vector final {
   }
 
   iterator insert(const_iterator pos, const_reference value) {
-    assert(!(pos > cend()));
+    assert(pos <= end());
 
-    const size_type offset = pos - cbegin();
+    const size_type offset = pos - begin();
+    const value_type tmp =
+        value;  // value can reference inside vector so we save in case of
+                // realloc (dangling reference possibility)
 
     if (size() == capacity()) {
       increase_cap_by_n(size() ? size() : 10);
@@ -260,13 +269,13 @@ class Vector final {
     iterator insert_pos = begin() + offset;
 
     if (insert_pos == end()) {
-      push_back(value);
+      push_back(tmp);
     } else {
       std::construct_at(end(), std::move(*(end() - 1)));
       for (iterator it = end() - 1; it > insert_pos; --it) {
         *it = std::move(*(it - 1));
       }
-      *insert_pos = value;
+      *insert_pos = tmp;
       ++fin_;
     }
 
@@ -275,13 +284,13 @@ class Vector final {
 
   template <typename... Args>
   iterator insert_many(const_iterator pos, Args&&... args) {
-    assert(!(pos > cend()));
+    assert(!(pos > end()));
 
     size_t n_items = sizeof...(args);
-    size_t offset = pos - cbegin();
+    size_t offset = pos - begin();
 
     if (n_items == 0) {
-      return begin() + (pos - cbegin());
+      return begin() + (pos - begin());
     } else if (n_items + size() > max_size()) {
       throw std::length_error("...");
     } else if (size() + n_items > capacity()) {
@@ -316,7 +325,6 @@ class Vector final {
         }
       }
     }
-
     return begin() + offset;
   }
 

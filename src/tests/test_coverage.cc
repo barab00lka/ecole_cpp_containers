@@ -61,13 +61,13 @@ void SweepVector() {
   T sum_count = T{};
   (void)sum_count;
   for (auto it = a.begin(); it != a.end(); ++it) (void)*it;
-  for (auto it = ca.cbegin(); it != ca.cend(); ++it) (void)*it;
+  for (auto it = ca.begin(); it != ca.end(); ++it) (void)*it;
   for (auto it = a.rbegin(); it != a.rend(); ++it) (void)*it;
-  for (auto it = ca.crbegin(); it != ca.crend(); ++it) (void)*it;
+  for (auto it = ca.rbegin(); it != ca.rend(); ++it) (void)*it;
 
-  a.insert(a.cbegin(), v(0));
-  a.insert(a.cend(), v(9));
-  a.insert_many(a.cbegin() + 1, v(7), v(8));
+  a.insert(a.begin(), v(0));
+  a.insert(a.end(), v(9));
+  a.insert_many(a.begin() + 1, v(7), v(8));
   a.erase(a.begin());
   a.pop_back();
 

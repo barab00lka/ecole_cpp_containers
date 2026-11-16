@@ -32,12 +32,12 @@ void ExpectVectorsEqual(const my::Vector<T>& actual,
 template <typename T>
 void ExpectVectorElements(const my::Vector<T>& actual,
                           const std::vector<T>& expected) {
-  auto it_act = actual.cbegin();
-  auto it_exp = expected.cbegin();
-  for (; it_exp != expected.cend(); ++it_act, ++it_exp) {
+  auto it_act = actual.begin();
+  auto it_exp = expected.begin();
+  for (; it_exp != expected.end(); ++it_act, ++it_exp) {
     EXPECT_EQ(*it_act, *it_exp);
   }
-  EXPECT_EQ(it_act, actual.cend());
+  EXPECT_EQ(it_act, actual.end());
 }
 
 TEST(VectorCompareTest, DefaultConstructor) {
@@ -254,25 +254,25 @@ TEST(VectorCompareTest, InsertSingle) {
   my::Vector<int> actual{1, 2, 3};
   std::vector<int> expected{1, 2, 3};
 
-  auto act_pos = actual.cbegin() + 1;
-  auto exp_pos = expected.cbegin() + 1;
+  auto act_pos = actual.begin() + 1;
+  auto exp_pos = expected.begin() + 1;
   actual.insert(act_pos, 10);
   expected.insert(exp_pos, 10);
   ExpectVectorsEqual(actual, expected);
 
-  actual.insert(actual.cbegin(), 20);
-  expected.insert(expected.cbegin(), 20);
+  actual.insert(actual.begin(), 20);
+  expected.insert(expected.begin(), 20);
   ExpectVectorsEqual(actual, expected);
 
-  actual.insert(actual.cend(), 30);
-  expected.insert(expected.cend(), 30);
+  actual.insert(actual.end(), 30);
+  expected.insert(expected.end(), 30);
   ExpectVectorsEqual(actual, expected);
 }
 TEST(VectorCompareTest, InsertMany) {
   int numbers[] = {67, 228, 69, 420};
   my::Vector<int> many{1, 2, 3};
   std::vector<int> expected{1, 67, 228, 69, 420, 2, 3};
-  many.insert_many(many.cbegin() + 1, numbers[0], numbers[1], numbers[2],
+  many.insert_many(many.begin() + 1, numbers[0], numbers[1], numbers[2],
                    numbers[3]);
   ExpectVectorsEqual(many, expected);
   expected.insert(expected.begin(), 11);
@@ -399,7 +399,7 @@ TEST(VectorCompareTest, EraseInvalidIteratorThrows) {
 
 TEST(VectorCompareTest, InsertManyWithNoArgsIsNoop) {
   my::Vector<int> v{1, 2, 3};
-  auto it = v.insert_many(v.cbegin() + 1);  // zero args -> nothing inserted
+  auto it = v.insert_many(v.begin() + 1);  // zero args -> nothing inserted
   EXPECT_EQ(v.size(), 3u);
   EXPECT_EQ(*it, 2);  // iterator at requested pos
 }
